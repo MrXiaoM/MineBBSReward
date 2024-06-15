@@ -1,0 +1,39 @@
+# 帖子地址
+thread-url: 'https://www.minebbs.com/threads/XXX'
+# 匹配时间戳的正则表达式
+# 如果不懂请勿修改
+matcher:
+  regex: 'data-time="([0-9]+)" data-date-string.*datePublished'
+  group: 1
+# 时间设定
+time:
+  # 顶帖后限定领取奖励的时间 (秒)
+  top-timeout: 60
+  # 两次成功顶帖间的冷却时间 (秒)
+  top-cooldown: 7200
+  # reward 命令冷却时间 (秒)
+  reward-cooldown: 7200
+
+# 奖励命令，支持 PAPI
+# [console]控制台命令
+# [player]玩家命令
+# [message]输出聊天消息
+reward-commands:
+  - '[console]money give %player_name% 100 顶帖奖励'
+  - '[message]&7[&e&l顶帖奖励&7] &a你成功领取了顶帖奖励!'
+
+messages:
+  help:
+    - '&e&lMineBBS顶帖奖励'
+    - '  &f/mbr reward &7请求领取顶帖奖励'
+  time:
+    hours: '时'
+    hour: '时'
+    minute: '分'
+    minutes: '分'
+    second: '秒'
+    seconds: '秒'
+  top-timeout: '&7[&e&l顶帖奖励&7] &e领取超时，请在顶帖后 &b%time% &e内领取奖励'
+  top-cooldown: '&7[&e&l顶帖奖励&7] &e顶帖奖励正在冷却中 &7(剩余 &f%remain%&7)'
+  reward-cooldown: '&7[&e&l顶帖奖励&7] &e命令正在冷却中 &7(剩余 &f%remain%&7)'
+  reload: '&7[&e&l顶帖奖励&7] &a配置文件已重载'

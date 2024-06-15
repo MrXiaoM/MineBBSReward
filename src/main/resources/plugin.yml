@@ -1,0 +1,11 @@
+name: MineBBSReward
+version: '${version}'
+main: top.mrxiaom.minebbsreward.MineBBSReward
+api-version: 1.13
+softdepend:
+  - PlaceholderAPI
+authors: [ MrXiaoM ]
+commands:
+  minebbsreward:
+    description: MineBBSReward main command.
+    aliases: [mbreward, mbr]
