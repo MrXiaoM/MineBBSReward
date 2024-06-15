@@ -1,9 +1,12 @@
 # 帖子地址
 thread-url: 'https://www.minebbs.com/threads/XXX'
+headers:
+  User-Agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Edg/125.0.0.0'
 # 匹配时间戳的正则表达式
 # 如果不懂请勿修改
 matcher:
   regex: 'data-time="([0-9]+)" data-date-string.*datePublished'
+  find-times: 1
   group: 1
 # 时间设定
 time:

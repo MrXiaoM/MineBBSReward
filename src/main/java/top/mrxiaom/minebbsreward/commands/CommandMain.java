@@ -12,6 +12,8 @@ import org.jetbrains.annotations.Nullable;
 import top.mrxiaom.minebbsreward.MineBBSReward;
 import top.mrxiaom.minebbsreward.func.AbstractPluginHolder;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class CommandMain extends AbstractPluginHolder implements CommandExecutor, TabCompleter {
@@ -49,7 +51,16 @@ public class CommandMain extends AbstractPluginHolder implements CommandExecutor
 
                 return true;
             }
-            if (args[0].equalsIgnoreCase("reload")) {
+            if (args[0].equalsIgnoreCase("fetch") && sender.isOp()) {
+                Long time = plugin.getLastTime().orElse(null);
+                if (time == null) {
+                    return t(sender, "&c获取失败");
+                }
+                LocalDateTime localDateTime = LocalDateTime.from(Instant.ofEpochSecond(time));
+                return t(sender, "&b" + localDateTime.getYear() + "年" + localDateTime.getMonthValue() + "月" + localDateTime.getDayOfMonth() + "日 "
+                        + localDateTime.getHour() + ":" + localDateTime.getMinute() + ":" + localDateTime.getSecond());
+            }
+            if (args[0].equalsIgnoreCase("reload") && sender.isOp()) {
                 plugin.reloadConfig();
                 return true;
             }

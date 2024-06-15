@@ -15,8 +15,6 @@ import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static top.mrxiaom.minebbsreward.utils.Pair.replace;
-
 @SuppressWarnings({"unused"})
 public class Util {
     public static void init(JavaPlugin plugin) {
@@ -31,7 +29,6 @@ public class Util {
         return sw.toString();
     }
 
-    @SafeVarargs
     public static void runCommands(Player player, List<String> list) {
         for (String s : ColorHelper.parseColor(PAPI.setPlaceholders(player, list))) {
             if (s.startsWith("[console]")) {
