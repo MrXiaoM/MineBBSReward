@@ -36,6 +36,7 @@ messages:
     minutes: '分'
     second: '秒'
     seconds: '秒'
+  request-fail: '&7[&e&l顶帖奖励&7] &e顶帖信息获取失败，请稍候再试'
   top-timeout: '&7[&e&l顶帖奖励&7] &e领取超时，请在顶帖后 &b%time% &e内领取奖励'
   top-cooldown: '&7[&e&l顶帖奖励&7] &e顶帖奖励正在冷却中 &7(剩余 &f%remain%&7)'
   reward-cooldown: '&7[&e&l顶帖奖励&7] &e命令正在冷却中 &7(剩余 &f%remain%&7)'

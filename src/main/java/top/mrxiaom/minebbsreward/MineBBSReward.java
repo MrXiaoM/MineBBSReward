@@ -36,7 +36,8 @@ public class MineBBSReward extends JavaPlugin implements Listener {
     private Pattern matcherRegex;
     private int matcherFindTimes;
     private int matcherGroup;
-    private Map<String, String> headers = new HashMap<>();
+    private final Map<String, String> headers = new HashMap<>();
+    private String sHour, sHours, sMinute, sMinutes, sSecond, sSeconds;
     @Override
     public void onEnable() {
         Util.init(instance = this);
@@ -59,7 +60,7 @@ public class MineBBSReward extends JavaPlugin implements Listener {
     }
 
     public Optional<Long> getLastTime() {
-        if (threadUrl.equals(defaultThread)) return Optional.empty();
+        if (threadUrl.equals(defaultThread) || matcherFindTimes <= 0) return Optional.empty();
         try {
             URL url = new URL(threadUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -78,10 +79,8 @@ public class MineBBSReward extends JavaPlugin implements Listener {
                         }
                         String s = new String(out.toByteArray(), StandardCharsets.UTF_8);
                         Matcher matcher = matcherRegex.matcher(s);
-                        boolean find = false;
                         for (int i = 0; i < matcherFindTimes; i++) {
-                            find = matcher.find();
-                            if (!find) {
+                            if (!matcher.find()) {
                                 throw new IllegalStateException("Only found " + i + " times. (" + matcherFindTimes + " expected)");
                             }
                         }
@@ -95,6 +94,17 @@ public class MineBBSReward extends JavaPlugin implements Listener {
             getLogger().warning(stackTraceToString(t));
             return Optional.empty();
         }
+    }
+
+    public String toString(long timeDiff) {
+        long second = timeDiff % 60;
+        long minute = (timeDiff / 60) % 60;
+        long hour = timeDiff / 3600;
+        StringBuilder sb = new StringBuilder();
+        if (hour > 0) sb.append(hour).append(hour > 1 ? sHours : sHour);
+        if (minute > 0 || hour > 0) sb.append(minute).append(minute > 1 ? sMinutes : sMinute);
+        if (second > 0 || minute > 0 || hour > 0) sb.append(second).append(second > 1 ? sSeconds : sSecond);
+        return sb.toString();
     }
 
     @Override
@@ -113,6 +123,13 @@ public class MineBBSReward extends JavaPlugin implements Listener {
         if (section != null) for (String key : section.getKeys(false)) {
             headers.put(key, section.getString(key));
         }
+
+        sHour = config.getString("messages.time.hour");
+        sHours = config.getString("messages.time.hours");
+        sMinute = config.getString("messages.time.minute");
+        sMinutes = config.getString("messages.time.minutes");
+        sSecond = config.getString("messages.time.second");
+        sSeconds = config.getString("messages.time.seconds");
 
         reloadAllConfig(config);
     }
