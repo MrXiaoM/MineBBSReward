@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import top.mrxiaom.minebbsreward.MineBBSReward;
 import top.mrxiaom.minebbsreward.func.AbstractPluginHolder;
+import top.mrxiaom.minebbsreward.utils.Util;
 
 import java.io.File;
 import java.time.Instant;
@@ -26,7 +27,9 @@ public class CommandMain extends AbstractPluginHolder implements CommandExecutor
     long timeoutTop;
     long cooldownTop;
     long cooldownRewardCmd;
+    boolean checkOnlySuccess;
     String msgRequestFail, msgTopTimeout, msgTopCooldown, msgRewardCooldown, msgReload;
+    List<String> rewardCommands;
     public CommandMain(MineBBSReward plugin) {
         super(plugin);
         this.dataFile = new File(plugin.getDataFolder(), "data.yml");
@@ -39,6 +42,8 @@ public class CommandMain extends AbstractPluginHolder implements CommandExecutor
         timeoutTop = config.getLong("time.top-timeout") * 1000L;
         cooldownTop = config.getLong("time.top-cooldown") * 1000L;
         cooldownRewardCmd = config.getLong("time.reward-cooldown") * 1000L;
+        checkOnlySuccess = config.getBoolean("time.check-only-success");
+        rewardCommands = config.getStringList("reward-commands");
         msgRequestFail = config.getString("messages.request-fail");
         msgTopTimeout = config.getString("messages.top-timeout");
         msgTopCooldown = config.getString("messages.top-cooldown");
@@ -74,9 +79,10 @@ public class CommandMain extends AbstractPluginHolder implements CommandExecutor
                 long now = System.currentTimeMillis();
                 long next = rewardCommandTime.getOrDefault(player.getUniqueId(), now);
                 if (now < next) {
+                    t(player, msgRewardCooldown.replace("%remain%", plugin.toString((next - now) / 1000L)));
                     return true;
                 }
-                rewardCommandTime.put(player.getUniqueId(), now + cooldownRewardCmd);
+                rewardCommandTime.put(player.getUniqueId(), now + cooldownRewardCmd * 1000L);
                 Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
                     Long time = plugin.getLastTime().orElse(null);
                     if (time == null) {
@@ -84,11 +90,25 @@ public class CommandMain extends AbstractPluginHolder implements CommandExecutor
                         rewardCommandTime.remove(player.getUniqueId());
                         return;
                     }
-                    Long lastTime = data.getLong("local-last-success-time", 0L);
-                    if (time - lastTime <= cooldownTop) {
-                        t(player, msgTopCooldown);
+                    long lastTime = data.getLong("local-last-time", 0L);
+                    data.set("local-last-time", time);
+                    long current = System.currentTimeMillis() / 1000L;
+                    if (current - time > timeoutTop) {
+                        t(player, msgTopTimeout.replace("%time%", plugin.toString(timeoutTop)));
+                        save();
                         return;
                     }
+                    if (checkOnlySuccess) {
+                        lastTime = data.getLong("local-last-success-time", 0L);
+                    }
+                    if (time - lastTime <= cooldownTop) {
+                        t(player, msgTopCooldown.replace("%remain%", plugin.toString(cooldownTop)));
+                        save();
+                        return;
+                    }
+                    data.set("local-last-success-time", time);
+                    save();
+                    Util.runCommands(player, rewardCommands);
                 });
                 return true;
             }
@@ -111,7 +131,7 @@ public class CommandMain extends AbstractPluginHolder implements CommandExecutor
 
     private static final List<String> emptyList = Lists.newArrayList();
     private static final List<String> listArg0 = Lists.newArrayList("reward");
-    private static final List<String> listAdminArg0 = Lists.newArrayList("reward", "reload");
+    private static final List<String> listAdminArg0 = Lists.newArrayList("reward", "fetch", "reload");
     @Nullable
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {

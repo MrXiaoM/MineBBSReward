@@ -12,10 +12,18 @@ matcher:
 time:
   # 顶帖后限定领取奖励的时间 (秒)
   top-timeout: 60
-  # 两次成功顶帖间的冷却时间 (秒)
+  # 两次顶帖间的冷却时间 (秒)
   top-cooldown: 7200
   # reward 命令冷却时间 (秒)
   reward-cooldown: 7200
+  # 两贴顶帖间冷却时间检查机制
+  # true - 以玩家获得奖励算作成功顶帖
+  # false - 以顶帖时间更新算作成功顶帖
+  # 顶帖时间更新后，将会记录一个 last time
+  # 玩家顶帖成功获得后，将会记录一个 last success time
+  # true 用 last success time 计算冷却，反之用 last time 计算冷却
+  # 设置为 true 会对玩家更友好，不会出现“不是本服玩家顶帖也会卡冷却时间”的问题
+  check-only-success: false
 
 # 奖励命令，支持 PAPI
 # [console]控制台命令
