@@ -16,6 +16,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.HashMap;
@@ -110,8 +111,8 @@ public class MineBBSReward extends JavaPlugin implements Listener {
         return sb.toString();
     }
 
-    public String toString(TemporalAccessor time) {
-        return timePattern.format(time);
+    public String toString(LocalDateTime time) {
+        return time.format(timePattern);
     }
 
     @Override
@@ -138,7 +139,7 @@ public class MineBBSReward extends JavaPlugin implements Listener {
         sSecond = config.getString("messages.time.second");
         sSeconds = config.getString("messages.time.seconds");
 
-        String timePatternString = config.getString("messages.placeholder.time-pattern", "YYYY-MM-dd HH:mm:ss");
+        String timePatternString = config.getString("messages.placeholder.time-pattern", "yyyy年MM月dd日 HH:mm:ss");
         try {
             timePattern = DateTimeFormatter.ofPattern(timePatternString);
         } catch (IllegalArgumentException e) {

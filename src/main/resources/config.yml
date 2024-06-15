@@ -46,7 +46,7 @@ messages:
     seconds: '秒'
   placeholder:
     not-in-cooldown: '未在冷却'
-    time-pattern: 'YYYY年MM月dd日 HH:mm:ss'
+    time-pattern: 'yyyy年MM月dd日 HH:mm:ss'
   request-fail: '&7[&e&l顶帖奖励&7] &e顶帖信息获取失败，请稍候再试'
   top-timeout: '&7[&e&l顶帖奖励&7] &e领取超时，请在顶帖后 &b%time% &e内领取奖励'
   top-cooldown: '&7[&e&l顶帖奖励&7] &e两次顶帖时间处于冷却时间内，正在冷却中 &7(两次间隔需要大于 &f%time%&7)'
