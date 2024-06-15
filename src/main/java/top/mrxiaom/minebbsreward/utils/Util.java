@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -33,7 +34,7 @@ public class Util {
     }
 
     public static LocalDateTime fromTimestamp(long seconds) {
-        return LocalDateTime.from(Instant.ofEpochSecond(seconds));
+        return LocalDateTime.ofInstant(Instant.ofEpochSecond(seconds), ZoneOffset.ofHours(8).normalized());
     }
 
     public static void runCommands(Player player, List<String> list) {
