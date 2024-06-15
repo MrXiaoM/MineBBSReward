@@ -49,5 +49,19 @@
 主命令为 `/minebbsreward`，简写 `/mbreward` 或 `/mbr`
 ```
 /mbr reward - 请求领取顶帖奖励
+/mbr fetch - 调用爬虫获取上次顶帖时间 (测试命令)
 /mbr reload - 重载配置文件
+```
+权限为 `minebbsreward.command.<命令名>`，如 `minebbsreward.command.reward`
+
+# 变量
+
+安装 PlaceholderAPI 后，可使用以下变量
+```
+%minebbsreward_cooldown_top% - 配置文件设置的顶帖冷却时间
+%minebbsreward_cooldown_reward% - 配置文件设置的reward命令冷却时间
+%minebbsreward_cooldown_top_remain% - 还有多长时间才允许再次使用手动顶帖卡进行顶帖
+%minebbsreward_cooldown_reward_remain% - 还有多长时间才允许再次使用reward命令
+%minebbsreward_last_time% - 本地保存的上次顶帖成功的时间，使用fetch命令可刷新该时间
+%minebbsreward_last_success_time% - 上次有玩家成功顶帖领取奖励的时间
 ```

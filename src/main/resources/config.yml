@@ -44,8 +44,12 @@ messages:
     minutes: '分'
     second: '秒'
     seconds: '秒'
+  placeholder:
+    not-in-cooldown: '未在冷却'
+    time-pattern: 'YYYY年MM月dd日 HH:mm:ss'
   request-fail: '&7[&e&l顶帖奖励&7] &e顶帖信息获取失败，请稍候再试'
   top-timeout: '&7[&e&l顶帖奖励&7] &e领取超时，请在顶帖后 &b%time% &e内领取奖励'
-  top-cooldown: '&7[&e&l顶帖奖励&7] &e顶帖奖励正在冷却中 &7(剩余 &f%remain%&7)'
+  top-cooldown: '&7[&e&l顶帖奖励&7] &e两次顶帖时间处于冷却时间内，正在冷却中 &7(两次间隔需要大于 &f%time%&7)'
   reward-cooldown: '&7[&e&l顶帖奖励&7] &e命令正在冷却中 &7(剩余 &f%remain%&7)'
+  fetch: '&7[&e&l顶帖奖励&7] &a上次顶帖: &b%time%'
   reload: '&7[&e&l顶帖奖励&7] &a配置文件已重载'

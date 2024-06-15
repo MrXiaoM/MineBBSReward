@@ -9,6 +9,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.Permissible;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import top.mrxiaom.minebbsreward.MineBBSReward;
@@ -16,7 +17,6 @@ import top.mrxiaom.minebbsreward.func.AbstractPluginHolder;
 import top.mrxiaom.minebbsreward.utils.Util;
 
 import java.io.File;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -28,13 +28,23 @@ public class CommandMain extends AbstractPluginHolder implements CommandExecutor
     long cooldownTop;
     long cooldownRewardCmd;
     boolean checkOnlySuccess;
-    String msgRequestFail, msgTopTimeout, msgTopCooldown, msgRewardCooldown, msgReload;
+    String msgRequestFail, msgTopTimeout, msgTopCooldown, msgRewardCooldown, msgFetch, msgReload;
+    String phNotInCooldown;
     List<String> rewardCommands;
+    long localLastTime, localLastSuccessTime;
     public CommandMain(MineBBSReward plugin) {
         super(plugin);
         this.dataFile = new File(plugin.getDataFolder(), "data.yml");
         registerCommand("minebbsreward", this);
         register();
+    }
+
+    public long getLocalLastTime() {
+        return localLastTime;
+    }
+
+    public long getLocalLastSuccessTime() {
+        return localLastSuccessTime;
     }
 
     @Override
@@ -44,20 +54,52 @@ public class CommandMain extends AbstractPluginHolder implements CommandExecutor
         cooldownRewardCmd = config.getLong("time.reward-cooldown") * 1000L;
         checkOnlySuccess = config.getBoolean("time.check-only-success");
         rewardCommands = config.getStringList("reward-commands");
+        phNotInCooldown = config.getString("messages.placeholder.not-in-cooldown");
         msgRequestFail = config.getString("messages.request-fail");
         msgTopTimeout = config.getString("messages.top-timeout");
         msgTopCooldown = config.getString("messages.top-cooldown");
         msgRewardCooldown = config.getString("messages.reward-cooldown");
+        msgFetch = config.getString("messages.fetch");
         msgReload = config.getString("messages.reload");
         boolean request = data == null;
         data = YamlConfiguration.loadConfiguration(dataFile);
+        localLastTime = data.getLong("local-last-time", 0L);
+        localLastSuccessTime = data.getLong("local-last-success-time", 0L);
         if (request) Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             Long time = plugin.getLastTime().orElse(null);
             if (time != null) {
-                data.set("local-last-time", time);
+                data.set("local-last-time", localLastTime = time);
                 save();
             }
         });
+    }
+
+    public String getPlayerCooldown() {
+        return plugin.toString(cooldownRewardCmd);
+    }
+
+    public String getTopCooldown() {
+        return plugin.toString(cooldownTop);
+    }
+
+    public String getPlayerCooldownRemain(UUID uuid) {
+        long now = System.currentTimeMillis();
+        long next = rewardCommandTime.getOrDefault(uuid, now);
+        if (now < next) {
+            return plugin.toString((next - now) / 1000L);
+        }
+        return phNotInCooldown;
+    }
+
+    public String getTopCooldownRemain() {
+        long time = System.currentTimeMillis() / 1000L;
+        long lastTime = checkOnlySuccess
+                ? localLastSuccessTime
+                : localLastTime;
+        if (time - lastTime <= cooldownTop) {
+            return plugin.toString(time - lastTime);
+        }
+        return phNotInCooldown;
     }
 
     private void save() {
@@ -71,7 +113,7 @@ public class CommandMain extends AbstractPluginHolder implements CommandExecutor
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (args.length == 1) {
-            if (args[0].equalsIgnoreCase("reward")) {
+            if (args[0].equalsIgnoreCase("reward") && sender.hasPermission("minebbsreward.command.reward")) {
                 if (!(sender instanceof Player)) {
                     return true;
                 }
@@ -90,8 +132,8 @@ public class CommandMain extends AbstractPluginHolder implements CommandExecutor
                         rewardCommandTime.remove(player.getUniqueId());
                         return;
                     }
-                    long lastTime = data.getLong("local-last-time", 0L);
-                    data.set("local-last-time", time);
+                    long lastTime = localLastTime;
+                    data.set("local-last-time", localLastTime = time);
                     long current = System.currentTimeMillis() / 1000L;
                     if (current - time > timeoutTop) {
                         t(player, msgTopTimeout.replace("%time%", plugin.toString(timeoutTop)));
@@ -99,29 +141,32 @@ public class CommandMain extends AbstractPluginHolder implements CommandExecutor
                         return;
                     }
                     if (checkOnlySuccess) {
-                        lastTime = data.getLong("local-last-success-time", 0L);
+                        lastTime = localLastSuccessTime;
                     }
                     if (time - lastTime <= cooldownTop) {
-                        t(player, msgTopCooldown.replace("%remain%", plugin.toString(cooldownTop)));
+                        t(player, msgTopCooldown.replace("%time%", plugin.toString(cooldownTop)));
                         save();
                         return;
                     }
-                    data.set("local-last-success-time", time);
+                    data.set("local-last-success-time", localLastSuccessTime = time);
                     save();
                     Util.runCommands(player, rewardCommands);
                 });
                 return true;
             }
-            if (args[0].equalsIgnoreCase("fetch") && sender.isOp()) {
-                Long time = plugin.getLastTime().orElse(null);
-                if (time == null) {
-                    return t(sender, msgRequestFail);
-                }
-                LocalDateTime localDateTime = LocalDateTime.from(Instant.ofEpochSecond(time));
-                return t(sender, "&b" + localDateTime.getYear() + "年" + localDateTime.getMonthValue() + "月" + localDateTime.getDayOfMonth() + "日 "
-                        + localDateTime.getHour() + ":" + localDateTime.getMinute() + ":" + localDateTime.getSecond());
+            if (args[0].equalsIgnoreCase("fetch") && sender.hasPermission("minebbsreward.command.fetch")) {
+                Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+                    Long time = plugin.getLastTime().orElse(null);
+                    if (time == null) {
+                        t(sender, msgRequestFail);
+                        return;
+                    }
+                    LocalDateTime localDateTime = Util.fromTimestamp(time);
+                    t(sender, msgFetch.replace("%time%", plugin.toString(localDateTime)));
+                });
+                return true;
             }
-            if (args[0].equalsIgnoreCase("reload") && sender.isOp()) {
+            if (args[0].equalsIgnoreCase("reload") && sender.hasPermission("minebbsreward.command.reload")) {
                 plugin.reloadConfig();
                 return t(sender, msgReload);
             }
@@ -130,21 +175,25 @@ public class CommandMain extends AbstractPluginHolder implements CommandExecutor
     }
 
     private static final List<String> emptyList = Lists.newArrayList();
-    private static final List<String> listArg0 = Lists.newArrayList("reward");
-    private static final List<String> listAdminArg0 = Lists.newArrayList("reward", "fetch", "reload");
+    private static final List<String> listArg0 = Lists.newArrayList("reward", "fetch", "reload");
     @Nullable
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         if (args.length == 1) {
-            return startsWith(sender.isOp() ? listAdminArg0 : listArg0, args[0]);
+            return startsWith(sender, listArg0, args[0]);
         }
         return emptyList;
     }
 
-    public List<String> startsWith(List<String> list, String s) {
+    public List<String> startsWith(Permissible permissible, List<String> list, String s) {
         String s1 = s.toLowerCase();
         List<String> stringList = new ArrayList<>(list);
         stringList.removeIf(it -> !it.toLowerCase().startsWith(s1));
+        stringList.removeIf(it -> !permissible.hasPermission("minebbsreward.command." + it));
         return stringList;
+    }
+
+    public static CommandMain inst() {
+        return get(CommandMain.class).orElseThrow(IllegalStateException::new);
     }
 }

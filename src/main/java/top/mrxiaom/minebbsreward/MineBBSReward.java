@@ -16,6 +16,8 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -38,6 +40,7 @@ public class MineBBSReward extends JavaPlugin implements Listener {
     private int matcherGroup;
     private final Map<String, String> headers = new HashMap<>();
     private String sHour, sHours, sMinute, sMinutes, sSecond, sSeconds;
+    private DateTimeFormatter timePattern;
     @Override
     public void onEnable() {
         Util.init(instance = this);
@@ -107,6 +110,10 @@ public class MineBBSReward extends JavaPlugin implements Listener {
         return sb.toString();
     }
 
+    public String toString(TemporalAccessor time) {
+        return timePattern.format(time);
+    }
+
     @Override
     public void reloadConfig() {
         this.saveDefaultConfig();
@@ -130,6 +137,13 @@ public class MineBBSReward extends JavaPlugin implements Listener {
         sMinutes = config.getString("messages.time.minutes");
         sSecond = config.getString("messages.time.second");
         sSeconds = config.getString("messages.time.seconds");
+
+        String timePatternString = config.getString("messages.placeholder.time-pattern", "YYYY-MM-dd HH:mm:ss");
+        try {
+            timePattern = DateTimeFormatter.ofPattern(timePatternString);
+        } catch (IllegalArgumentException e) {
+            timePattern = DateTimeFormatter.ISO_DATE_TIME;
+        }
 
         reloadAllConfig(config);
     }

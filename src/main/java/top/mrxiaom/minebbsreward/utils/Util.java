@@ -3,9 +3,12 @@ package top.mrxiaom.minebbsreward.utils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import top.mrxiaom.minebbsreward.MineBBSReward;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -17,8 +20,8 @@ import java.util.regex.Pattern;
 
 @SuppressWarnings({"unused"})
 public class Util {
-    public static void init(JavaPlugin plugin) {
-        PAPI.init();
+    public static void init(MineBBSReward plugin) {
+        PAPI.init(plugin);
     }
 
     public static String stackTraceToString(Throwable t) {
@@ -27,6 +30,10 @@ public class Util {
             t.printStackTrace(pw);
         }
         return sw.toString();
+    }
+
+    public static LocalDateTime fromTimestamp(long seconds) {
+        return LocalDateTime.from(Instant.ofEpochSecond(seconds));
     }
 
     public static void runCommands(Player player, List<String> list) {
