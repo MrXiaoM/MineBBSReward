@@ -37,6 +37,10 @@ public class Util {
         return LocalDateTime.ofInstant(Instant.ofEpochSecond(seconds), ZoneOffset.ofHours(8).normalized());
     }
 
+    public static long currentTimestamp() {
+        return System.currentTimeMillis() / 1000L;
+    }
+
     public static void runCommands(Player player, List<String> list) {
         for (String s : ColorHelper.parseColor(PAPI.setPlaceholders(player, list))) {
             if (s.startsWith("[console]")) {

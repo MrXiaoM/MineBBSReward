@@ -20,6 +20,8 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.util.*;
 
+import static top.mrxiaom.minebbsreward.utils.Util.currentTimestamp;
+
 public class CommandMain extends AbstractPluginHolder implements CommandExecutor, TabCompleter {
     YamlConfiguration data = null;
     File dataFile;
@@ -83,16 +85,16 @@ public class CommandMain extends AbstractPluginHolder implements CommandExecutor
     }
 
     public String getPlayerCooldownRemain(UUID uuid) {
-        long now = System.currentTimeMillis();
+        long now = currentTimestamp();
         long next = rewardCommandTime.getOrDefault(uuid, now);
         if (now < next) {
-            return plugin.toString((next - now) / 1000L);
+            return plugin.toString(next - now);
         }
         return phNotInCooldown;
     }
 
     public String getTopCooldownRemain() {
-        long time = System.currentTimeMillis() / 1000L;
+        long time = currentTimestamp();
         long lastTime = checkOnlySuccess
                 ? localLastSuccessTime
                 : localLastTime;
@@ -118,13 +120,13 @@ public class CommandMain extends AbstractPluginHolder implements CommandExecutor
                     return true;
                 }
                 Player player = (Player) sender;
-                long now = System.currentTimeMillis();
+                long now = currentTimestamp();
                 long next = rewardCommandTime.getOrDefault(player.getUniqueId(), now);
                 if (now < next) {
-                    t(player, msgRewardCooldown.replace("%remain%", plugin.toString((next - now) / 1000L)));
+                    t(player, msgRewardCooldown.replace("%remain%", plugin.toString(next - now)));
                     return true;
                 }
-                rewardCommandTime.put(player.getUniqueId(), now + cooldownRewardCmd * 1000L);
+                rewardCommandTime.put(player.getUniqueId(), now + cooldownRewardCmd);
                 Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
                     Long time = plugin.getLastTime().orElse(null);
                     if (time == null) {
@@ -132,16 +134,12 @@ public class CommandMain extends AbstractPluginHolder implements CommandExecutor
                         rewardCommandTime.remove(player.getUniqueId());
                         return;
                     }
-                    long lastTime = localLastTime;
+                    long lastTime = checkOnlySuccess ? localLastSuccessTime : localLastTime;
                     data.set("local-last-time", localLastTime = time);
-                    long current = System.currentTimeMillis() / 1000L;
-                    if (current - time > timeoutTop) {
+                    if (now - time > timeoutTop) {
                         t(player, msgTopTimeout.replace("%time%", plugin.toString(timeoutTop)));
                         save();
                         return;
-                    }
-                    if (checkOnlySuccess) {
-                        lastTime = localLastSuccessTime;
                     }
                     if (time - lastTime <= cooldownTop) {
                         t(player, msgTopCooldown.replace("%time%", plugin.toString(cooldownTop)));
